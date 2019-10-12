@@ -13,7 +13,13 @@ boolean ledON        = 1;
 
 enum measurements {
   BATTERY_VOLTAGE,
-  CONTROLLER_TEMPERATURE
+  BATTERY_CURRENT,
+  BATTERY_TEMPERATURE,
+  CELL_VOLTAGE_LOW,
+  CELL_VOLTAGE_HIGH,
+  RPM,
+  MOTOR_CURRENT,
+  CONTROLLER_TEMPERATURE,
 };
 
 struct vehicleMeasurement {
@@ -21,8 +27,14 @@ struct vehicleMeasurement {
   float value;
 };
 
-vehicleMeasurement vm[2] = {
+vehicleMeasurement vm[9] = {
   {BATTERY_VOLTAGE, 0.0},
+  {BATTERY_CURRENT, 0.0},
+  {BATTERY_TEMPERATURE, 0.0},
+  {CELL_VOLTAGE_LOW, 0.0},
+  {CELL_VOLTAGE_HIGH, 0.0},
+  {RPM, 0.0},
+  {MOTOR_CURRENT, 0.0},
   {CONTROLLER_TEMPERATURE, 0.0}
 };
 
@@ -74,6 +86,48 @@ void loop() {
       if (canId == 0x1E0A) {
         found_ID = 1;
         vm[BATTERY_VOLTAGE].value = get_32(0, buf)/1E5;
+        vm[BATTERY_CURRENT].value = get_32(4, buf)/1E5;
+      }
+    }
+  }
+
+  found_ID = 0;
+  while (!found_ID) {
+    if(CAN_MSGAVAIL == CAN.checkReceive()) {
+      CAN.readMsgBuf(&len, buf);
+      uint32_t canId = CAN.getCanId();
+
+      if (canId == 0x210A) {
+        found_ID = 1;
+        vm[BATTERY_TEMPERATURE].value = get_16(6, buf)/1E2;
+      }
+    }
+  }
+
+  found_ID = 0;
+  while (!found_ID) {
+    if(CAN_MSGAVAIL == CAN.checkReceive()) {
+      CAN.readMsgBuf(&len, buf);
+      uint32_t canId = CAN.getCanId();
+
+      if (canId == 0x1F0A) {
+        found_ID = 1;
+        vm[CELL_VOLTAGE_LOW].value = get_32(0, buf)/1E5;
+        vm[CELL_VOLTAGE_HIGH].value = get_32(4, buf)/1E5;
+      }
+    }
+  }
+
+  found_ID = 0;
+  while (!found_ID) {
+    if(CAN_MSGAVAIL == CAN.checkReceive()) {
+      CAN.readMsgBuf(&len, buf);
+      uint32_t canId = CAN.getCanId();
+
+      if (canId == 0x0916) {
+        found_ID = 1;
+        vm[RPM].value = get_32(0, buf)/1E0;
+        vm[MOTOR_CURRENT].value = get_16(4, buf)/1E1;
       }
     }
   }
@@ -93,6 +147,21 @@ void loop() {
 
   Serial.print("BATTERY_VOLTAGE: ");
   Serial.println(vm[BATTERY_VOLTAGE].value);
+  Serial.print("BATTERY_CURRENT: ");
+  Serial.println(vm[BATTERY_CURRENT].value);
+  Serial.print("BATTERY_TEMPERATURE: ");
+  Serial.println(vm[BATTERY_TEMPERATURE].value);
+  Serial.print("CELL_VOLTAGE_LOW: ");
+  Serial.println(vm[CELL_VOLTAGE_LOW].value);
+  Serial.print("CELL_VOLTAGE_HIGH: ");
+  Serial.println(vm[CELL_VOLTAGE_HIGH].value);
+  Serial.print("RPM: ");
+  Serial.println(vm[RPM].value);
+  Serial.print("MOTOR_CURRENT: ");
+  Serial.println(vm[MOTOR_CURRENT].value);
   Serial.print("CONTROLLER_TEMPERATURE: ");
   Serial.println(vm[CONTROLLER_TEMPERATURE].value);
+  Serial.print(millis());
+  Serial.println();
+  Serial.println();
 }
