@@ -29,57 +29,65 @@ void setup()
 }
 
 uint32_t get_32(uint8_t index, uint8_t buf[8]) {
-  return ((uint32_t)buf[index] << 24 | 
-                    (uint32_t)buf[index + 1] << 16 | 
-                    (uint32_t)buf[index + 2] << 8 | 
-                    (uint32_t)buf[index+3]);
-   
+  return ((uint32_t)buf[index]     << 24 |
+          (uint32_t)buf[index + 1] << 16 |
+          (uint32_t)buf[index + 2] <<  8 |
+          (uint32_t)buf[index+3]);
+
 }
 
+uint16_t get_16(uint8_t index, uint8_t buf[8]) {
+  return ((uint16_t)buf[index] << 8 |
+          (uint16_t)buf[index + 1]);
+
+}
 void loop()
 {
     unsigned char len = 0;
     unsigned char buf[8];
+    bool found_ID = 0;
 
-    if(CAN_MSGAVAIL == CAN.checkReceive())            // check if data coming
-    {
-      // readMsgBuf - readMsgBufID - readRxTxStatus - mcp2515_read_canMsg
-        CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
-
+    found_ID = 0;
+    while (!found_ID) {
+      if(CAN_MSGAVAIL == CAN.checkReceive()) {
+        CAN.readMsgBuf(&len, buf);
         uint32_t canId = CAN.getCanId();
 
-        //Serial.println("-----------------------------");
-        //Serial.print("ID: ");
-        //Serial.println(canId, HEX);
-
         if (canId == 0x1E0A) {
+          found_ID = 1;
           Serial.println(canId, HEX);
-          int i = 0;
-          uint32_t value = (uint32_t)buf[i]<<24 | (uint32_t)buf[i+1]<<16 | (uint32_t)buf[i+2]<<8 | (uint32_t)buf[i+3];
-          Serial.println(value/100000.);
           Serial.println(get_32(0, buf)/1E5);
-
-        for(int i = 0; i<len; i++)    // print the data
-        {
-            Serial.print(buf[i]);
-            Serial.print("\t");
-        }          
-        Serial.println();
+          Serial.println();
         }
+      }
+    }
 
-        if (canId == 0x210A) {
-          Serial.print(canId, HEX);
-          Serial.print("\t");
-        for(int i = 0; i<len; i++)    // print the data
-        {
-            Serial.print(buf[i]);
-            Serial.print("\t");
-        }          
-        Serial.println();
+    found_ID = 0;
+    while (!found_ID) {
+      if(CAN_MSGAVAIL == CAN.checkReceive()) {
+        CAN.readMsgBuf(&len, buf);
+        uint32_t canId = CAN.getCanId();
+
+        if (canId == 0x1016) {
+          found_ID = 1;
+          Serial.println(canId, HEX);
+          Serial.println(get_16(0, buf)/1E1);
+          Serial.println();
         }
+      }
+    }
+        /* if (canId == 0x210A) { */
+        /*   Serial.print(canId, HEX); */
+        /*   Serial.print("\t"); */
+        /* for(int i = 0; i<len; i++)    // print the data */
+        /* { */
+        /*     Serial.print(buf[i]); */
+        /*     Serial.print("\t"); */
+        /* } */
+        /* Serial.println(); */
+        /* } */
 
         /*
         Serial.println();
         */
-    }
 }
