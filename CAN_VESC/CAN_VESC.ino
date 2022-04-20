@@ -1,13 +1,19 @@
+#include <can-serial.h>
+#include <mcp2515_can.h>
+#include <mcp2515_can_dfs.h>
+#include <mcp2518fd_can.h>
+#include <mcp2518fd_can_dfs.h>
+#include <mcp_can.h>
+
 // demo: CAN-BUS Shield, receive data with check mode
 // send data coming to fast, such as less than 10ms, you can use this way
 // loovee, 2014-6-13
 
 #include <SPI.h>
-#include "mcp_can.h"
 
 // the cs pin of the version after v1.1 is default to D9
 // v0.9b and v1.0 is default D10
-const int SPI_CS_PIN = 53;
+const int SPI_CS_PIN = 10;
 const int LED        = 8;
 boolean ledON        = 1;
 
